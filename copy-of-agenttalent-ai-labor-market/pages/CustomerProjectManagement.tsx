@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Need, NeedStatus, TaskType, ClarificationMessage, ExpertTier, DataProductType } from '../types';
-import { ICONS } from '../constants';
+import { ICONS, DESIGN } from '../constants';
 import { GoogleGenAI } from '@google/genai';
 
 interface CustomerProjectManagementProps {
@@ -39,28 +39,28 @@ const CustomerProjectManagement: React.FC<CustomerProjectManagementProps> = ({ n
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-10 animate-in fade-in duration-500 h-full">
+    <div className={`flex flex-col lg:flex-row gap-6 lg:gap-10 ${DESIGN.animation.fadeIn} h-full`}>
       {/* Needs List Sidebar */}
       <div className="w-full lg:w-[380px] space-y-6">
         <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] px-2">项目需求列表</h3>
-        <div className="space-y-3 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+        <div className="space-y-3 overflow-y-auto max-h-[50vh] lg:max-h-[70vh] pr-2 custom-scrollbar">
           {needs.map(need => (
             <div
               key={need.id}
               onClick={() => setActiveNeed(need)}
-              className={`p-6 rounded-[32px] border transition-all cursor-pointer relative group ${
+              className={`p-5 lg:p-6 ${DESIGN.radius.lg} border transition-all duration-200 cursor-pointer relative group ${
                 activeNeed?.id === need.id 
                   ? 'bg-white border-indigo-400 shadow-2xl ring-1 ring-indigo-400' 
-                  : 'bg-white border-slate-100 hover:border-indigo-200'
+                  : 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-lg'
               }`}
             >
               {need.pendingActionBy === 'customer' && (
-                <div className="absolute top-4 right-4 bg-rose-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase shadow-lg">澄清中</div>
+                <div className={`absolute top-4 right-4 bg-rose-500 text-white text-[8px] font-black px-2 py-0.5 ${DESIGN.radius.sm} uppercase shadow-lg`}>澄清中</div>
               )}
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">#{need.id.split('-')[1]}</p>
-              <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{need.domainArea}</h4>
+              <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">{need.domainArea}</h4>
               <div className="mt-4 flex items-center justify-between">
-                 <span className="text-[10px] font-black text-indigo-500 bg-indigo-50 px-2.5 py-1 rounded-xl uppercase">{need.status}</span>
+                 <span className={`text-[10px] font-black text-indigo-500 bg-indigo-50 px-2.5 py-1 ${DESIGN.radius.sm} uppercase`}>{need.status}</span>
                  <span className="text-[9px] font-bold text-slate-400">{new Date(need.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
@@ -69,7 +69,7 @@ const CustomerProjectManagement: React.FC<CustomerProjectManagementProps> = ({ n
       </div>
 
       {/* Project Detail & Clarification Chat */}
-      <div className="flex-1 bg-white rounded-[40px] border border-slate-100 shadow-sm flex flex-col overflow-hidden relative">
+      <div className={`flex-1 ${DESIGN.card.level2} flex flex-col overflow-hidden relative`}>
         {activeNeed ? (
           <>
             <div className="p-10 border-b border-slate-50 shrink-0">
@@ -123,28 +123,29 @@ const CustomerProjectManagement: React.FC<CustomerProjectManagementProps> = ({ n
 
             {/* Input Area */}
             {activeNeed.pendingActionBy === 'customer' && (
-              <div className="p-8 bg-white border-t border-slate-50 shrink-0">
-                <div className="flex gap-4">
+              <div className="p-4 lg:p-8 bg-white border-t border-slate-50 shrink-0">
+                <div className="flex gap-3 lg:gap-4">
                   <textarea 
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
-                    className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-24"
+                    className={`flex-1 ${DESIGN.input.textarea} h-20 lg:h-24`}
                     placeholder="请输入对管理员的回应..."
                   />
                   <button 
                     onClick={handleReply}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white w-20 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 transition-all active:scale-95"
+                    disabled={!replyText.trim()}
+                    className={`${DESIGN.button.primary} ${DESIGN.radius.md} w-16 lg:w-20 flex items-center justify-center transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    <ICONS.ArrowRight className="w-6 h-6" />
+                    <ICONS.ArrowRight className="w-5 h-5 lg:w-6 lg:h-6" />
                   </button>
                 </div>
               </div>
             )}
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-30">
-            <ICONS.Clock className="w-20 h-20 mb-6" />
-            <p className="text-xl font-black uppercase tracking-widest">请选择一个项目进行管理</p>
+          <div className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 text-center opacity-30">
+            <ICONS.Clock className={DESIGN.emptyState.icon + ' mb-6'} />
+            <p className={DESIGN.emptyState.text}>请选择一个项目进行管理</p>
           </div>
         )}
       </div>
@@ -238,55 +239,55 @@ const NeedIntakeForm: React.FC<IntakeFormProps> = ({ onCancel, onSubmit }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-[48px] shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
-      <div className="bg-indigo-600 p-12 text-white">
-        <h2 className="text-4xl font-black tracking-tighter">发布专家寻访协议</h2>
+    <div className={`max-w-5xl mx-auto ${DESIGN.card.level3} border border-slate-200 overflow-hidden ${DESIGN.animation.slideUp}`}>
+      <div className="bg-indigo-600 p-8 lg:p-12 text-white">
+        <h2 className="text-2xl lg:text-4xl font-black tracking-tighter">发布专家寻访协议</h2>
         <p className="text-indigo-100 mt-2 font-bold uppercase tracking-widest text-[10px] opacity-80">Maybole AI Post-Training Search Protocol</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-12 space-y-16">
+      <form onSubmit={handleSubmit} className="p-6 lg:p-12 space-y-12 lg:space-y-16">
         {/* Section 1: Context & Domain */}
-        <div className="space-y-8">
+        <div className="space-y-6 lg:space-y-8">
            <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs italic">01</div>
               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">领域上下文 (Context)</h3>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">核心领域 (Master Domain) *</label>
-                <input required className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold" placeholder="例如：医学、法律、数学" value={formData.domainArea} onChange={e => setFormData({...formData, domainArea: e.target.value})} />
+                <input required className={`w-full ${DESIGN.input.base} font-bold`} placeholder="例如：医学、法律、数学" value={formData.domainArea} onChange={e => setFormData({...formData, domainArea: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">细分方向 (Sub-Domain) *</label>
-                <input required className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold" placeholder="例如：心脏病学、证券法、拓扑学" value={formData.subDomain} onChange={e => setFormData({...formData, subDomain: e.target.value})} />
+                <input required className={`w-full ${DESIGN.input.base} font-bold`} placeholder="例如：心脏病学、证券法、拓扑学" value={formData.subDomain} onChange={e => setFormData({...formData, subDomain: e.target.value})} />
               </div>
            </div>
         </div>
 
         {/* Section 2: Expertise & Requirements */}
-        <div className="space-y-8">
+        <div className="space-y-6 lg:space-y-8">
            <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs italic">02</div>
               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">专家能力模型 (Expertise Model)</h3>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">人才层级要求 *</label>
-                <select className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold" value={formData.expertTier} onChange={e => setFormData({...formData, expertTier: e.target.value as ExpertTier})}>
+                <select className={`w-full ${DESIGN.input.base} font-bold`} value={formData.expertTier} onChange={e => setFormData({...formData, expertTier: e.target.value as ExpertTier})}>
                   {Object.values(ExpertTier).map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">任务形式 *</label>
-                <select className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold" value={formData.taskType} onChange={e => setFormData({...formData, taskType: e.target.value as TaskType})}>
+                <select className={`w-full ${DESIGN.input.base} font-bold`} value={formData.taskType} onChange={e => setFormData({...formData, taskType: e.target.value as TaskType})}>
                   {Object.values(TaskType).map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">交付物类型 *</label>
-                <select className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold" value={formData.dataProductType} onChange={e => setFormData({...formData, dataProductType: e.target.value as DataProductType})}>
+                <select className={`w-full ${DESIGN.input.base} font-bold`} value={formData.dataProductType} onChange={e => setFormData({...formData, dataProductType: e.target.value as DataProductType})}>
                   {Object.values(DataProductType).map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
@@ -294,57 +295,57 @@ const NeedIntakeForm: React.FC<IntakeFormProps> = ({ onCancel, onSubmit }) => {
         </div>
 
         {/* Section 3: Task & Quality Control */}
-        <div className="space-y-8">
+        <div className="space-y-6 lg:space-y-8">
            <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs italic">03</div>
               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">任务详情与质量约束 (Execution & Quality)</h3>
            </div>
            
-           <div className="space-y-8">
+           <div className="space-y-6 lg:space-y-8">
              <div className="space-y-2">
                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">详细任务描述与交付标准 *</label>
-               <textarea required className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-44 font-medium leading-relaxed" placeholder="请详细说明：专家需要完成什么？输出格式（如 JSON/Markdown）？是否需要思维链（CoT）轨迹？是否有特殊的 Prompt 注入要求？" value={formData.taskDescription} onChange={e => setFormData({...formData, taskDescription: e.target.value})} />
+               <textarea required className={`w-full ${DESIGN.input.textarea} h-36 lg:h-44 leading-relaxed`} placeholder="请详细说明：专家需要完成什么？输出格式（如 JSON/Markdown）？是否需要思维链（CoT）轨迹？是否有特殊的 Prompt 注入要求？" value={formData.taskDescription} onChange={e => setFormData({...formData, taskDescription: e.target.value})} />
              </div>
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                <div className="space-y-2">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">硬性准入条件 (Must Have)</label>
-                 <textarea className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-32 font-medium resize-none" placeholder="例如：必须通过过中国执业医师考试、必须有 3 年以上红队对抗经验..." value={formData.mustHave} onChange={e => setFormData({...formData, mustHave: e.target.value})} />
+                 <textarea className={`w-full ${DESIGN.input.textarea} h-32`} placeholder="例如：必须通过过中国执业医师考试、必须有 3 年以上红队对抗经验..." value={formData.mustHave} onChange={e => setFormData({...formData, mustHave: e.target.value})} />
                </div>
                <div className="space-y-2">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">合规与敏感性约束 (Compliance)</label>
-                 <textarea className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-32 font-medium resize-none" placeholder="是否涉及私域敏感数据？是否有特定领域的安全红线？" value={formData.complianceConstraints} onChange={e => setFormData({...formData, complianceConstraints: e.target.value})} />
+                 <textarea className={`w-full ${DESIGN.input.textarea} h-32`} placeholder="是否涉及私域敏感数据？是否有特定领域的安全红线？" value={formData.complianceConstraints} onChange={e => setFormData({...formData, complianceConstraints: e.target.value})} />
                </div>
              </div>
            </div>
         </div>
 
         {/* Section 4: Operational */}
-        <div className="space-y-8">
+        <div className="space-y-6 lg:space-y-8">
            <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs italic">04</div>
               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">运营与预算 (Ops & Budget)</h3>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">预算区间 *</label>
-                <input required className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold" placeholder="例如：¥800-¥1200/hr" value={formData.budgetRange} onChange={e => setFormData({...formData, budgetRange: e.target.value})} />
+                <input required className={`w-full ${DESIGN.input.base} font-bold`} placeholder="例如：¥800-¥1200/hr" value={formData.budgetRange} onChange={e => setFormData({...formData, budgetRange: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">投入强度 (h/wk) *</label>
-                <input type="number" required className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold" value={formData.intensityHours} onChange={e => setFormData({...formData, intensityHours: parseInt(e.target.value)})} />
+                <input type="number" required className={`w-full ${DESIGN.input.base} font-bold`} value={formData.intensityHours} onChange={e => setFormData({...formData, intensityHours: parseInt(e.target.value)})} />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">预计周期 *</label>
-                <input required className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold" placeholder="例如：2周、3个月" value={formData.timeline} onChange={e => setFormData({...formData, timeline: e.target.value})} />
+                <input required className={`w-full ${DESIGN.input.base} font-bold`} placeholder="例如：2周、3个月" value={formData.timeline} onChange={e => setFormData({...formData, timeline: e.target.value})} />
               </div>
            </div>
         </div>
 
-        <div className="flex justify-end gap-6 pt-12 border-t border-slate-50">
-          <button type="button" onClick={onCancel} className="px-10 py-4 text-[10px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-widest transition-colors">取消</button>
-          <button type="submit" disabled={!isFormValid || loading} className={`px-16 py-4 rounded-2xl text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-2xl active:scale-95 ${isFormValid && !loading ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100' : 'bg-slate-200 cursor-not-allowed'}`}>
+        <div className="flex flex-col sm:flex-row justify-end gap-4 lg:gap-6 pt-8 lg:pt-12 border-t border-slate-50">
+          <button type="button" onClick={onCancel} className={`px-8 lg:px-10 py-3 lg:py-4 text-[10px] ${DESIGN.button.base} ${DESIGN.button.ghost}`}>取消</button>
+          <button type="submit" disabled={!isFormValid || loading} className={`px-10 lg:px-16 py-3 lg:py-4 ${DESIGN.radius.md} text-white text-[10px] ${DESIGN.button.base} ${isFormValid && !loading ? DESIGN.button.primary : 'bg-slate-200 cursor-not-allowed shadow-none'}`}>
             {loading ? 'AI 正在分析搜索协议...' : '确认并启动全球专家寻访'}
           </button>
         </div>

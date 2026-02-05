@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Need, NeedStatus, ShortlistReview } from '../types';
 import { MOCK_EXPERTS } from '../services/mockData';
-import { ICONS } from '../constants';
+import { ICONS, DESIGN } from '../constants';
 
 interface CustomerShortlistReviewProps {
   needs: Need[];
@@ -54,27 +54,25 @@ const CustomerShortlistReview: React.FC<CustomerShortlistReviewProps> = ({ needs
   };
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row gap-10">
+    <div className={`space-y-8 lg:space-y-12 ${DESIGN.animation.fadeIn}`}>
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
         {/* Shortlist Sidebar */}
-        <div className="w-full md:w-80 space-y-6">
+        <div className="w-full lg:w-80 space-y-6">
           <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-2">待评审项目</h3>
           <div className="space-y-3">
              {shortlistNeeds.length > 0 ? shortlistNeeds.map(need => (
                <div 
                 key={need.id} 
                 onClick={() => setActiveNeed(need)}
-                className={`p-6 rounded-[32px] border transition-all cursor-pointer relative group ${
-                  activeNeed?.id === need.id ? 'bg-indigo-600 border-indigo-600 text-white shadow-xl translate-x-2' : 'bg-white border-slate-100 text-slate-600 hover:border-indigo-200'
+                className={`p-5 lg:p-6 ${DESIGN.radius.lg} border transition-all duration-200 cursor-pointer relative group ${
+                  activeNeed?.id === need.id ? `bg-indigo-600 border-indigo-600 text-white ${DESIGN.shadow.primary} translate-x-1` : 'bg-white border-slate-100 text-slate-600 hover:border-indigo-200 hover:shadow-lg'
                 }`}
                >
                  <h4 className="font-bold text-sm leading-tight">{need.domainArea}</h4>
                  <div className="mt-4 flex items-center justify-between">
                     <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase ${activeNeed?.id === need.id ? 'bg-white/20 text-white' : 'bg-slate-50 text-slate-400'}`}>
-                      {/* Fixed: Cast Object.values to ShortlistReview[] to avoid TS error on 'status' */}
                       {(Object.values(need.shortlistReviewStatuses) as ShortlistReview[]).filter(s => s.status !== 'pending').length} / {need.shortlist.length} 已评审
                     </span>
-                    {/* Fixed: Cast Object.values to ShortlistReview[] to avoid TS error on 'status' */}
                     {(Object.values(need.shortlistReviewStatuses) as ShortlistReview[]).some(s => s.status === 'pending') && (
                       <span className="flex h-2 w-2 relative">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -84,7 +82,7 @@ const CustomerShortlistReview: React.FC<CustomerShortlistReviewProps> = ({ needs
                  </div>
                </div>
              )) : (
-               <div className="p-8 text-center text-slate-300 font-black uppercase text-xs border-2 border-dashed border-slate-100 rounded-3xl">
+               <div className={`p-8 text-center ${DESIGN.emptyState.text} border-2 border-dashed border-slate-100 ${DESIGN.radius.lg}`}>
                   暂无待评审短名单
                </div>
              )}
@@ -92,7 +90,7 @@ const CustomerShortlistReview: React.FC<CustomerShortlistReviewProps> = ({ needs
         </div>
 
         {/* Expert Review Canvas */}
-        <div className="flex-1 bg-white border border-slate-100 rounded-[48px] shadow-sm flex flex-col min-h-[700px] relative overflow-hidden">
+        <div className={`flex-1 ${DESIGN.card.level2} flex flex-col min-h-[500px] lg:min-h-[700px] relative overflow-hidden`}>
           {activeNeed ? (
             <>
               <div className="p-12 border-b border-slate-50 flex justify-between items-end shrink-0">
@@ -225,9 +223,9 @@ const CustomerShortlistReview: React.FC<CustomerShortlistReviewProps> = ({ needs
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-12 opacity-20 text-center">
-              <ICONS.User className="w-32 h-32 mb-8" />
-              <p className="text-2xl font-black uppercase tracking-[0.2em]">请选择项目评审短名单</p>
+            <div className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 opacity-20 text-center">
+              <ICONS.User className={DESIGN.emptyState.icon + ' mb-6 lg:mb-8'} />
+              <p className={DESIGN.emptyState.text}>请选择项目评审短名单</p>
             </div>
           )}
         </div>
@@ -235,15 +233,15 @@ const CustomerShortlistReview: React.FC<CustomerShortlistReviewProps> = ({ needs
 
       {/* Decline Modal */}
       {showDeclineModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-6 overflow-y-auto">
-          <div className="bg-white rounded-[40px] p-10 max-w-lg w-full shadow-2xl animate-in zoom-in duration-300 my-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 lg:p-6 overflow-y-auto">
+          <div className={`${DESIGN.card.level3} p-6 lg:p-10 max-w-lg w-full animate-in zoom-in duration-300 my-auto`}>
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">拒绝专家人选</h3>
+                <h3 className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight">拒绝专家人选</h3>
                 <p className="text-sm font-bold text-slate-400 mt-1 uppercase tracking-widest">Reason for Rejection</p>
               </div>
-              <button onClick={() => setShowDeclineModal(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-300 hover:text-slate-600 transition-all">
-                <ICONS.Plus className="w-6 h-6 rotate-45" />
+              <button onClick={() => setShowDeclineModal(null)} className={`p-2 hover:bg-slate-100 ${DESIGN.radius.sm} text-slate-300 hover:text-slate-600 transition-all duration-200`}>
+                <ICONS.Close className="w-5 h-5" />
               </button>
             </div>
             
@@ -255,8 +253,8 @@ const CustomerShortlistReview: React.FC<CustomerShortlistReviewProps> = ({ needs
                     <button
                       key={r}
                       onClick={() => setDeclineCategory(r)}
-                      className={`text-left px-4 py-3 rounded-xl border font-black text-[11px] transition-all tracking-tight ${
-                        declineCategory === r ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-600 hover:border-indigo-200'
+                      className={`text-left px-4 py-3 ${DESIGN.radius.sm} border font-black text-[11px] transition-all duration-200 tracking-tight ${
+                        declineCategory === r ? `bg-indigo-600 border-indigo-600 text-white ${DESIGN.shadow.primary}` : 'bg-slate-50 border-slate-100 text-slate-600 hover:border-indigo-200'
                       }`}
                     >
                       {r}
@@ -272,18 +270,18 @@ const CustomerShortlistReview: React.FC<CustomerShortlistReviewProps> = ({ needs
                   value={declineDetails}
                   onChange={(e) => setDeclineDetails(e.target.value)}
                   placeholder="请详细描述为什么该专家不合适，以及您希望匹配什么样的专家（例如：需要具备具体的工具使用经验或特定行业背景）..."
-                  className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-32 resize-none"
+                  className={`w-full ${DESIGN.input.textarea} h-32`}
                 />
                 <p className="text-[10px] text-slate-400 font-medium">您的具体反馈将直接帮助 Maybole 管理员在下一轮匹配中更精准地锁定目标人才。</p>
               </div>
             </div>
 
-            <div className="flex gap-4 mt-10">
-              <button onClick={() => setShowDeclineModal(null)} className="flex-1 py-4 text-xs font-black text-slate-400 uppercase tracking-widest transition-colors hover:text-slate-900">取消</button>
+            <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 mt-8 lg:mt-10">
+              <button onClick={() => setShowDeclineModal(null)} className={`flex-1 py-3 lg:py-4 text-xs ${DESIGN.button.base} ${DESIGN.button.ghost}`}>取消</button>
               <button 
                 onClick={handleDeclineConfirm}
                 disabled={!declineCategory || !declineDetails.trim()}
-                className="flex-[2] bg-rose-500 hover:bg-rose-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-rose-100 disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none transition-all active:scale-95"
+                className={`flex-[2] py-3 lg:py-4 ${DESIGN.radius.md} text-xs ${DESIGN.button.base} ${!declineCategory || !declineDetails.trim() ? 'bg-slate-100 text-slate-300 shadow-none cursor-not-allowed' : DESIGN.button.danger}`}
               >
                 {!declineCategory || !declineDetails.trim() ? '请完善拒绝理由' : '确认拒绝并提交'}
               </button>
