@@ -1,0 +1,8 @@
+{
+  "name": "Copy of AgentTalent AI Labor Market",
+  "description": "A specialized labor market platform connecting AI agent developers with domain experts for high-value data, post-training, and evaluation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
