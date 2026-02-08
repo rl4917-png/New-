@@ -58,13 +58,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </button>
           </div>
 
-          <div className="pt-6 md:pt-8 border-t border-white/5 flex justify-center">
-            <button 
-              onClick={() => onLogin('admin')}
-              className={`text-[10px] ${DESIGN.button.base} text-slate-500 hover:text-indigo-400`}
-            >
-              管理员登录
-            </button>
+          <div className="pt-6 md:pt-8 border-t border-white/5 text-center">
+            <p className="text-[10px] text-slate-600 font-medium">Maybole · AI Post-Training Talent Market</p>
           </div>
         </div>
       </div>

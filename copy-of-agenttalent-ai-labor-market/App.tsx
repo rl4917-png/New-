@@ -6,7 +6,7 @@ import CustomerOverview from './pages/CustomerOverview';
 import CustomerProjectManagement from './pages/CustomerProjectManagement';
 import CustomerShortlistReview from './pages/CustomerShortlistReview';
 import ExpertDashboard from './pages/ExpertDashboard';
-import AdminDashboard from './pages/AdminDashboard';
+// AdminDashboard removed for demo
 import { Need, NeedStatus } from './types';
 import { MOCK_NEEDS } from './services/mockData';
 
@@ -69,7 +69,7 @@ const App: React.FC = () => {
       case 'expert':
         return <ExpertDashboard />;
       case 'admin':
-        return <AdminDashboard needs={needs} onUpdateNeed={handleUpdateNeed} />;
+        return null; // Admin removed for demo
     }
   };
 

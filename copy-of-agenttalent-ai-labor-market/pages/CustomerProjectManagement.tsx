@@ -15,6 +15,9 @@ interface CustomerProjectManagementProps {
 const CustomerProjectManagement: React.FC<CustomerProjectManagementProps> = ({ needs, isCreating, setIsCreating, onAddNeed, onUpdateNeed }) => {
   const [activeNeed, setActiveNeed] = useState<Need | null>(null);
   const [replyText, setReplyText] = useState('');
+  // Feedback state
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackData, setFeedbackData] = useState({ satisfactionRating: 0, speedRating: 0, qualityRating: 0, suggestions: '' });
 
   const handleReply = () => {
     if (!activeNeed || !replyText.trim()) return;
@@ -34,9 +37,52 @@ const CustomerProjectManagement: React.FC<CustomerProjectManagementProps> = ({ n
     setReplyText('');
   };
 
+  const handleSubmitFeedback = () => {
+    if (!activeNeed) return;
+    const updatedNeed: Need = {
+      ...activeNeed,
+      feedback: {
+        ...feedbackData,
+        submittedAt: new Date().toISOString()
+      }
+    };
+    onUpdateNeed(updatedNeed);
+    setActiveNeed(updatedNeed);
+    setShowFeedback(false);
+    alert('反馈已提交，感谢您的评价！');
+  };
+
   if (isCreating) {
     return <NeedIntakeForm onCancel={() => setIsCreating(false)} onSubmit={onAddNeed} />;
   }
+
+  // Helper for status badge color
+  const getStatusColor = (status: NeedStatus) => {
+    switch (status) {
+      case NeedStatus.SUBMITTED: return 'bg-blue-50 text-blue-500';
+      case NeedStatus.RECRUITING: return 'bg-cyan-50 text-cyan-600';
+      case NeedStatus.SHORTLISTED: return 'bg-amber-50 text-amber-500';
+      case NeedStatus.MATCHED: return 'bg-emerald-50 text-emerald-500';
+      case NeedStatus.INTRO: return 'bg-emerald-50 text-emerald-500';
+      default: return 'bg-slate-50 text-slate-400';
+    }
+  };
+
+  // Stars component
+  const StarRating = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map(star => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          className={`text-2xl transition-all ${star <= value ? 'text-amber-400' : 'text-slate-200 hover:text-amber-200'}`}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div className={`flex flex-col lg:flex-row gap-6 lg:gap-10 ${DESIGN.animation.fadeIn} h-full`}>
@@ -47,28 +93,43 @@ const CustomerProjectManagement: React.FC<CustomerProjectManagementProps> = ({ n
           {needs.map(need => (
             <div
               key={need.id}
-              onClick={() => setActiveNeed(need)}
+              onClick={() => { setActiveNeed(need); setShowFeedback(false); }}
               className={`p-5 lg:p-6 ${DESIGN.radius.lg} border transition-all duration-200 cursor-pointer relative group ${
                 activeNeed?.id === need.id 
                   ? 'bg-white border-indigo-400 shadow-2xl ring-1 ring-indigo-400' 
                   : 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-lg'
               }`}
             >
-              {need.pendingActionBy === 'customer' && (
-                <div className={`absolute top-4 right-4 bg-rose-500 text-white text-[8px] font-black px-2 py-0.5 ${DESIGN.radius.sm} uppercase shadow-lg`}>澄清中</div>
+              {need.status === NeedStatus.MATCHED && !need.feedback && (
+                <div className={`absolute top-4 right-4 bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 ${DESIGN.radius.sm} uppercase shadow-lg`}>待反馈</div>
+              )}
+              {need.pendingActionBy === 'customer' && need.status !== NeedStatus.MATCHED && (
+                <div className={`absolute top-4 right-4 bg-rose-500 text-white text-[8px] font-black px-2 py-0.5 ${DESIGN.radius.sm} uppercase shadow-lg`}>待操作</div>
               )}
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">#{need.id.split('-')[1]}</p>
               <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">{need.domainArea}</h4>
               <div className="mt-4 flex items-center justify-between">
-                 <span className={`text-[10px] font-black text-indigo-500 bg-indigo-50 px-2.5 py-1 ${DESIGN.radius.sm} uppercase`}>{need.status}</span>
+                 <span className={`text-[10px] font-black px-2.5 py-1 ${DESIGN.radius.sm} uppercase ${getStatusColor(need.status)}`}>{need.status}</span>
                  <span className="text-[9px] font-bold text-slate-400">{new Date(need.createdAt).toLocaleDateString()}</span>
               </div>
+              {/* Recruitment progress mini */}
+              {need.recruitmentSentCount && (
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, ((need.recruitmentRespondedCount || 0) / (need.recruitmentTargetCount || 1)) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-[9px] font-bold text-slate-400">{need.recruitmentRespondedCount}/{need.recruitmentTargetCount}</span>
+                </div>
+              )}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Project Detail & Clarification Chat */}
+      {/* Project Detail */}
       <div className={`flex-1 ${DESIGN.card.level2} flex flex-col overflow-hidden relative`}>
         {activeNeed ? (
           <>
@@ -80,15 +141,107 @@ const CustomerProjectManagement: React.FC<CustomerProjectManagementProps> = ({ n
                       {activeNeed.taskType} · 强度 {activeNeed.intensityHours}h/周
                     </p>
                   </div>
-                  <div className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest ${
-                    activeNeed.pendingActionBy === 'customer' ? 'bg-rose-50 text-rose-500' : 'bg-slate-50 text-slate-400'
-                  }`}>
-                    {activeNeed.pendingActionBy === 'customer' ? '待您澄清回复' : '等待管理员同步'}
-                  </div>
+                  <span className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest ${getStatusColor(activeNeed.status)}`}>
+                    {activeNeed.status}
+                  </span>
                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-10 space-y-12">
+               {/* Recruitment Status Card */}
+               {activeNeed.recruitmentSentCount && (
+                 <section className={`p-8 bg-indigo-50/50 border border-indigo-100 ${DESIGN.radius.xl} space-y-6`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 bg-indigo-600 ${DESIGN.radius.sm} flex items-center justify-center text-white`}>
+                        <ICONS.Search className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-indigo-900 uppercase tracking-widest">招募进度</h4>
+                        <p className="text-xs font-medium text-indigo-500">Recruitment Progress</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-6">
+                      <div className="text-center">
+                        <p className="text-3xl font-black text-indigo-600">{activeNeed.recruitmentSentCount}</p>
+                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-1">已发送专家</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-3xl font-black text-emerald-600">{activeNeed.recruitmentRespondedCount}</p>
+                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-1">已响应</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-3xl font-black text-slate-600">{activeNeed.recruitmentTargetCount}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">招募目标</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-[10px] font-black text-indigo-400 uppercase">
+                        <span>响应率 {((activeNeed.recruitmentRespondedCount || 0) / (activeNeed.recruitmentSentCount || 1) * 100).toFixed(0)}%</span>
+                        <span>{(activeNeed.recruitmentRespondedCount || 0) >= (activeNeed.recruitmentTargetCount || 0) ? '✓ 已达标' : '进行中...'}</span>
+                      </div>
+                      <div className="w-full h-3 bg-indigo-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-indigo-600 rounded-full transition-all duration-1000 ease-out"
+                          style={{ width: `${Math.min(100, ((activeNeed.recruitmentRespondedCount || 0) / (activeNeed.recruitmentTargetCount || 1)) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                 </section>
+               )}
+
+               {/* Matched Need: Feedback section */}
+               {activeNeed.status === NeedStatus.MATCHED && (
+                 <section className={`p-8 bg-emerald-50/50 border border-emerald-100 ${DESIGN.radius.xl} space-y-6`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 bg-emerald-600 ${DESIGN.radius.sm} flex items-center justify-center text-white`}>
+                          <ICONS.CheckCircle className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-emerald-900 uppercase tracking-widest">匹配成功</h4>
+                          <p className="text-xs font-medium text-emerald-500">专家已确认，合作已开始</p>
+                        </div>
+                      </div>
+                      {!activeNeed.feedback ? (
+                        <button 
+                          onClick={() => setShowFeedback(true)}
+                          className={`px-6 py-3 ${DESIGN.radius.md} text-[10px] ${DESIGN.button.base} ${DESIGN.button.primary}`}
+                        >
+                          填写反馈
+                        </button>
+                      ) : (
+                        <span className="text-[10px] font-black text-emerald-500 bg-emerald-100 px-3 py-1 rounded-full uppercase">已提交反馈</span>
+                      )}
+                    </div>
+                    {activeNeed.feedback && (
+                      <div className="grid grid-cols-3 gap-4 pt-4 border-t border-emerald-100">
+                        <div className="text-center">
+                          <p className="text-lg font-black text-emerald-600">{'★'.repeat(activeNeed.feedback.satisfactionRating)}</p>
+                          <p className="text-[9px] font-black text-emerald-400 uppercase mt-1">满意度</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-black text-emerald-600">{'★'.repeat(activeNeed.feedback.speedRating)}</p>
+                          <p className="text-[9px] font-black text-emerald-400 uppercase mt-1">匹配速度</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-black text-emerald-600">{'★'.repeat(activeNeed.feedback.qualityRating)}</p>
+                          <p className="text-[9px] font-black text-emerald-400 uppercase mt-1">专家质量</p>
+                        </div>
+                      </div>
+                    )}
+                 </section>
+               )}
+
+               {/* AI Summary */}
+               {activeNeed.aiSummary && (
+                 <section className="space-y-4">
+                    <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">AI 摘要</h4>
+                    <div className={`p-6 bg-slate-50 ${DESIGN.radius.lg} text-sm font-medium text-slate-600 leading-relaxed italic border border-slate-100`}>
+                      {activeNeed.aiSummary}
+                    </div>
+                 </section>
+               )}
+
                {/* Clarification Flow */}
                <section className="space-y-8">
                   <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] border-b border-slate-50 pb-4">需求澄清对话区</h4>
@@ -122,7 +275,7 @@ const CustomerProjectManagement: React.FC<CustomerProjectManagementProps> = ({ n
             </div>
 
             {/* Input Area */}
-            {activeNeed.pendingActionBy === 'customer' && (
+            {activeNeed.pendingActionBy === 'customer' && activeNeed.status !== NeedStatus.MATCHED && (
               <div className="p-4 lg:p-8 bg-white border-t border-slate-50 shrink-0">
                 <div className="flex gap-3 lg:gap-4">
                   <textarea 
@@ -149,6 +302,61 @@ const CustomerProjectManagement: React.FC<CustomerProjectManagementProps> = ({ n
           </div>
         )}
       </div>
+
+      {/* Feedback Modal */}
+      {showFeedback && activeNeed && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 lg:p-6 overflow-y-auto">
+          <div className={`${DESIGN.card.level3} p-6 lg:p-10 max-w-lg w-full my-auto`}>
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h3 className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight">服务反馈</h3>
+                <p className="text-sm font-bold text-slate-400 mt-1 uppercase tracking-widest">Service Feedback</p>
+              </div>
+              <button onClick={() => setShowFeedback(false)} className={`p-2 hover:bg-slate-100 ${DESIGN.radius.sm} text-slate-300 hover:text-slate-600 transition-all`}>
+                <ICONS.Close className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">整体满意度</label>
+                <StarRating value={feedbackData.satisfactionRating} onChange={(v) => setFeedbackData(d => ({ ...d, satisfactionRating: v }))} />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">匹配速度</label>
+                <StarRating value={feedbackData.speedRating} onChange={(v) => setFeedbackData(d => ({ ...d, speedRating: v }))} />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">专家质量</label>
+                <StarRating value={feedbackData.qualityRating} onChange={(v) => setFeedbackData(d => ({ ...d, qualityRating: v }))} />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">改进建议</label>
+                <textarea 
+                  value={feedbackData.suggestions}
+                  onChange={(e) => setFeedbackData(d => ({ ...d, suggestions: e.target.value }))}
+                  placeholder="您对 Maybole 匹配服务有什么改进建议？"
+                  className={`w-full ${DESIGN.input.textarea} h-32`}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4 mt-8">
+              <button onClick={() => setShowFeedback(false)} className={`flex-1 py-4 text-xs ${DESIGN.button.base} ${DESIGN.button.ghost}`}>取消</button>
+              <button 
+                onClick={handleSubmitFeedback}
+                disabled={!feedbackData.satisfactionRating || !feedbackData.speedRating || !feedbackData.qualityRating}
+                className={`flex-[2] py-4 ${DESIGN.radius.md} text-xs ${DESIGN.button.base} ${
+                  feedbackData.satisfactionRating && feedbackData.speedRating && feedbackData.qualityRating
+                    ? DESIGN.button.primary : 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
+                }`}
+              >
+                提交反馈
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -186,6 +394,11 @@ const NeedIntakeForm: React.FC<IntakeFormProps> = ({ onCancel, onSubmit }) => {
     e.preventDefault();
     if (!isFormValid) return;
     setLoading(true);
+    
+    // Simulate recruitment: sent to 12 experts, 0 responded so far
+    const recruitmentSentCount = Math.floor(Math.random() * 5) + 10;
+    const recruitmentTargetCount = Math.floor(Math.random() * 3) + 4;
+
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = `你是一个专业的劳务市场匹配助手。请根据以下客户提交的AI专家需求数据，生成一段简洁、专业且吸引专家的项目摘要（150字以内）。
@@ -197,7 +410,7 @@ const NeedIntakeForm: React.FC<IntakeFormProps> = ({ onCancel, onSubmit }) => {
       时间周期：${formData.timeline}
       语言要求：${formData.languageRequirement}
       
-      请重点突出对“专业领域知识”和“模型训练背景”的要求。请用中文输出。`;
+      请重点突出对"专业领域知识"和"模型训练背景"的要求。请用中文输出。`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -208,7 +421,7 @@ const NeedIntakeForm: React.FC<IntakeFormProps> = ({ onCancel, onSubmit }) => {
         id: `need-${Math.floor(Math.random() * 900) + 200}`,
         customerId: 'cust-1',
         customerOrgName: '神经网络科技有限公司',
-        status: NeedStatus.SUBMITTED,
+        status: NeedStatus.RECRUITING,
         createdAt: new Date().toISOString(),
         shortlist: [],
         shortlistReviewStatuses: {},
@@ -216,21 +429,29 @@ const NeedIntakeForm: React.FC<IntakeFormProps> = ({ onCancel, onSubmit }) => {
         aiSummary: response.text?.trim() || 'AI 摘要生成中...',
         clarificationLog: [],
         pendingActionBy: 'admin',
+        replacementCount: 0,
+        recruitmentSentCount,
+        recruitmentRespondedCount: 0,
+        recruitmentTargetCount,
         ...formData
       };
       onSubmit(newNeed);
     } catch (error) {
       onSubmit({
-        id: `need-err-${Date.now()}`,
+        id: `need-${Date.now()}`,
         customerId: 'cust-1',
         customerOrgName: '神经网络科技有限公司',
-        status: NeedStatus.SUBMITTED,
+        status: NeedStatus.RECRUITING,
         createdAt: new Date().toISOString(),
         shortlist: [],
         shortlistReviewStatuses: {},
         roundIndex: 1,
         clarificationLog: [],
         pendingActionBy: 'admin',
+        replacementCount: 0,
+        recruitmentSentCount,
+        recruitmentRespondedCount: 0,
+        recruitmentTargetCount,
         ...formData
       });
     } finally {

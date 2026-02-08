@@ -9,9 +9,11 @@ export enum TaskType {
 
 export enum NeedStatus {
   SUBMITTED = '已提交',
+  RECRUITING = '招募中',
   DISCOVERY = '需求澄清',
   SHORTLISTED = '进入短名单',
   INTRO = '引荐约谈',
+  MATCHED = '匹配成功',
   CLOSED = '已结案',
   PAUSED = '已暂停'
 }
@@ -167,6 +169,18 @@ export interface Need {
   ttd_days?: number; 
   ttfs_hours?: number;
   replacementCount: number;
+  // Recruitment progress
+  recruitmentSentCount?: number;
+  recruitmentRespondedCount?: number;
+  recruitmentTargetCount?: number;
+  // Feedback
+  feedback?: {
+    satisfactionRating: number; // 1-5
+    speedRating: number;
+    qualityRating: number;
+    suggestions: string;
+    submittedAt: string;
+  };
 }
 
 export interface MatchRecord {

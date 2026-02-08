@@ -52,9 +52,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, customerView, set
           </button>
         ))}
         
-        {activeRole !== 'customer' && (
+        {activeRole === 'expert' && (
           <div className="px-4 py-3 text-[10px] font-black text-slate-300 uppercase tracking-widest">
-            {activeRole === 'admin' ? '管理控制台' : '专家工作台'}
+            专家工作台
           </div>
         )}
       </nav>
@@ -66,7 +66,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, customerView, set
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-black text-slate-900 truncate uppercase tracking-tight">
-              {activeRole === 'expert' ? '专家成员' : activeRole === 'admin' ? '系统管理员' : '尊贵客户'}
+              {activeRole === 'expert' ? '刘芳 博士' : '神经网络科技'}
             </p>
             <p className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">{activeRole}</p>
           </div>
@@ -126,7 +126,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, customerView, set
             <h2 className="text-lg lg:text-xl font-black text-slate-900 tracking-tight">
               {activeRole === 'customer' 
                 ? customerNavItems.find(n => n.id === customerView)?.label 
-                : (activeRole === 'admin' ? '管理后台' : '专家控制面板')}
+                : '专家控制面板'}
             </h2>
           </div>
           <div className="flex gap-2 lg:gap-4">

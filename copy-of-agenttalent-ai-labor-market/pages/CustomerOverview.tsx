@@ -15,9 +15,9 @@ type StatColor = 'indigo' | 'rose' | 'amber' | 'emerald';
 const CustomerOverview: React.FC<CustomerOverviewProps> = ({ needs, setView }) => {
   const stats: { label: string; value: number; color: StatColor }[] = [
     { label: '总需求', value: needs.length, color: 'indigo' },
-    { label: '待处理澄清', value: needs.filter(n => n.pendingActionBy === 'customer').length, color: 'rose' },
+    { label: '招募中', value: needs.filter(n => n.status === NeedStatus.RECRUITING || n.status === NeedStatus.SUBMITTED).length, color: 'rose' },
     { label: '短名单评审', value: needs.filter(n => n.status === NeedStatus.SHORTLISTED).length, color: 'amber' },
-    { label: '已成交合作', value: needs.filter(n => n.status === NeedStatus.INTRO).length, color: 'emerald' },
+    { label: '匹配成功', value: needs.filter(n => n.status === NeedStatus.MATCHED || n.status === NeedStatus.INTRO).length, color: 'emerald' },
   ];
 
   const recentNeeds = [...needs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 3);
